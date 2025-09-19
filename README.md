@@ -59,3 +59,9 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
 ## License
 
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+
+## Credits To Laracasts (As Always)
+
+Once again as always, huge thank you to Jeffrey Way for creating the Laravel in 30 Days 
+Video Course. Whether you are a newbie to web frameworks or have coding experience to core
+versions of any programming language especially PHP, this tutorial (https://www.youtube.com/watch?v=SqTdHCTWqks) is a must watch. There may be some subtle differences because I am using Laravel 12 as my version for this project. 
