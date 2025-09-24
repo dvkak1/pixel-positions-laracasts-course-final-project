@@ -21,5 +21,6 @@
   --font-hanken-grotesk: "Hanken Grotesk", sans-serif;
 
   /* Font sizes */
+  /*A tip: To convert pixels to rem, divide the amount of pixels by its base font size*/
   --text-2xs: 0.625rem;
 }

@@ -1,30 +1,26 @@
-   <div class="p-4 bg-white/5 rounded-xl flex flex-col text-center">
+   <x-panel class="flex flex-col text-center">
           <div class="self-start text-sm">
             Laracasts
           </div>
 
           <div class="py-8 font-bold">
-            <h3>Video Producer</h3>
-            <p>Full Time - from $60,000</p>
+            <h3 class="group-hover:text-blue-600 text-xl font-bold transition-colors duration-300">Video Producer</h3>
+            <p class="text-sm mt-4">Full Time - from $60,000</p>
           </div>
 
             <div class="flex justify-between items-center mt-auto">
                 <div class="space-x-2">
-                    <x-tag>Tag</x-tag>
-                    <x-tag>Tag</x-tag>
-                    <x-tag>Tag</x-tag>
+                    <x-tag size="small">Backend</x-tag>
+                    <x-tag size="small">Frontend</x-tag>
+                    <x-tag size="small">Manager</x-tag>
                 </div>
 
             <!--
                 Due to placehold.it being deprecated, replace with placehold.co
                 Be mindful of where you place the </div> to adjust layouts accordingly.
             -->
-            <img
-                src="https://placehold.co/42x42/007BFF/FFFFFF?text=42x42"
-                alt="Company Logo"
-                class="rounded-xl w-10 h-10 object-cover"
-            />
+            <x-employer-logo :width="42"/>
           </div>
-      </div>
+    </x-panel>
 
 
