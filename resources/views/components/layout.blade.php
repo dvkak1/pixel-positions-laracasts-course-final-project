@@ -10,7 +10,7 @@
     rel="stylesheet">
     @vite(['resources/js/app.js', 'resources/css/app.css'])
 </head>
-<body class="bg-black text-white font-hanken-grotesk">
+<body class="bg-black text-white font-hanken-grotesk pb-20">
     <div class="px-10">
         <nav class="flex justify-between items-center py-4 border-b border-white/10">
             <!--To create three divs, type div*3 -->
@@ -27,9 +27,19 @@
                 <a href="#">Companies</a>
             </div>
 
+        @auth
             <div>
-                <a href="#">Post a Job</a>
+                <a href="/jobs/create">Post a Job</a>
             </div>
+        @endauth
+
+        @guest
+          <div class="space-x-6 font-bold">
+                <a href="/register">Sign Up</a>
+                <a href="/login">Log In</a>
+            </div>
+        @endguest
+
         </nav>
 
         <main class="mt-10 max-m-[986px] mx-auto">
