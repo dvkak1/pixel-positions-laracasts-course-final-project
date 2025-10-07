@@ -3,13 +3,17 @@ services:
     name: pixel-positions
     env: docker
     plan: free
+    dockerfilePath: ./Dockerfile
     autoDeploy: true
+    branch: main
     envVars:
       - key: APP_ENV
         value: production
+      - key: APP_KEY
+        value: base64:SYEcVk+YjGLWmyUplBSRFH26sYMK6OI1NxlGj6vlDkQ=
       - key: APP_DEBUG
         value: false
-      - key: APP_KEY
-        sync: false
-      - key: APP_URL
-        value: https://pixel-positions.onrender.com
+      - key: DB_CONNECTION
+        value: sqlite
+      - key: DB_DATABASE
+        value: /var/app/database/database.sqlite
