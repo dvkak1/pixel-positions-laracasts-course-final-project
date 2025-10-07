@@ -1,33 +1,31 @@
-# Use official PHP image with Apache
-FROM php:8.2-apache
+# Use the official PHP 8.3 image with Apache
+FROM php:8.3-apache
 
-# Set working directory
-WORKDIR /var/www/html
-
-# Install system dependencies
+# Install dependencies
 RUN apt-get update && apt-get install -y \
-    git \
-    unzip \
-    libzip-dev \
-    sqlite3 \
+    git curl zip unzip sqlite3 libsqlite3-dev libzip-dev \
     && docker-php-ext-install pdo pdo_sqlite zip
 
 # Enable Apache mod_rewrite
 RUN a2enmod rewrite
 
-# Install Composer
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+# Set working directory
+WORKDIR /var/www/html
 
-# Copy project files
+# Copy application code
 COPY . .
 
-# Install PHP dependencies
-RUN composer install --no-interaction --optimize-autoloader
+# Install Composer
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-# Set proper permissions
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+# Install PHP dependencies
+RUN composer install --no-dev --optimize-autoloader
+
+# Set permissions for storage and bootstrap
+RUN chmod -R 775 storage bootstrap/cache
 
 # Expose port 80
 EXPOSE 80
 
-# Run Lar
+# Start Apache
+CMD ["apache2-foreground"]
