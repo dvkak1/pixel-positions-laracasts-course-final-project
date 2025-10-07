@@ -1,31 +1,46 @@
-# Use the official PHP 8.3 image with Apache
-FROM php:8.3-apache
+# Use official PHP image with necessary extensions
 
-# Install dependencies
-RUN apt-get update && apt-get install -y \
-    git curl zip unzip sqlite3 libsqlite3-dev libzip-dev \
-    && docker-php-ext-install pdo pdo_sqlite zip
-
-# Enable Apache mod_rewrite
-RUN a2enmod rewrite
+FROM php:8.2-fpm
 
 # Set working directory
+
 WORKDIR /var/www/html
 
-# Copy application code
-COPY . .
+# Install system dependencies and PHP extensions
+
+RUN apt-get update && apt-get install -y
+git
+unzip
+libsqlite3-dev
+libpng-dev
+libonig-dev
+curl
+&& docker-php-ext-install pdo pdo_sqlite mbstring tokenizer xml
 
 # Install Composer
+
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-# Install PHP dependencies
+# Copy project files
+
+COPY . .
+
+# Set proper permissions for storage and cache directories
+
+RUN chmod -R 775 storage bootstrap/cache || true
+
+# Install dependencies for production
+
 RUN composer install --no-dev --optimize-autoloader
 
-# Set permissions for storage and bootstrap
-RUN chmod -R 775 storage bootstrap/cache
+# Cache Laravel configuration and routes
 
-# Expose port 80
-EXPOSE 80
+RUN php artisan config:cache && php artisan route:cache && php artisan view:cache
 
-# Start Apache
-CMD ["apache2-foreground"]
+# Expose port 8000
+
+EXPOSE 8000
+
+# Start Laravel’s built-in web server
+
+CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
