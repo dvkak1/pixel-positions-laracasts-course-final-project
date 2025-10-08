@@ -1,26 +1,40 @@
 services:
 
 * type: web
-  name: pixel-positions
+  name: pixel-positions-laracasts-course-final
   env: docker
   plan: free
-  dockerfilePath: ./Dockerfile
-  autoDeploy: true
-  branch: main
+  region: singapore
+
+  # Port Laravel listens on (must match Dockerfile)
+
   envVars:
 
   * key: APP_ENV
     value: production
   * key: APP_DEBUG
     value: false
+  * key: APP_KEY
+    value: base64:m0TatBZduRyTlnu+3JcQzs8fKDm/cr4Fj8VBOh6cFLk=
   * key: APP_URL
     value: [https://pixel-positions-laracasts-course-final.onrender.com](https://pixel-positions-laracasts-course-final.onrender.com)
-  * key: APP_KEY
-    value: base64:SYEcVk+YjGLWmyUplBSRFH26sYMK6OI1NxlGj6vlDkQ=
   * key: DB_CONNECTION
     value: sqlite
   * key: DB_DATABASE
     value: /var/www/html/database/database.sqlite
-    ports:
-  * containerPort: 10000
-    protocol: HTTP
+  * key: PORT
+    value: 10000
+  * key: NODE_ENV
+    value: production
+
+  # Health check
+
+  healthCheckPath: /
+
+  # Auto-migrate and cache config before starting
+
+  startCommand: |
+  php artisan config:cache &&
+  php artisan route:cache &&
+  php artisan migrate --force &&
+  php artisan serve --host=0.0.0.0 --port=$PORT
