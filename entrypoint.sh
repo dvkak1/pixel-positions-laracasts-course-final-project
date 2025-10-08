@@ -29,6 +29,16 @@ fi
 echo "📦 Refreshing Composer autoload..."
 composer dump-autoload
 
+# Ensure storage and bootstrap/cache directories exist
+mkdir -p storage/framework/cache/data
+mkdir -p storage/framework/sessions
+mkdir -p storage/framework/views
+mkdir -p bootstrap/cache
+
+# Make them writable
+chmod -R 777 storage
+chmod -R 777 bootstrap/cache
+
 # Run migrations and seed (if available)
 echo "🧩 Running migrations..."
 php artisan migrate --force --seed || true
