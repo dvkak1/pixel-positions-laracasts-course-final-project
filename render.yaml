@@ -9,22 +9,14 @@ services:
     envVars:
       - key: APP_ENV
         value: production
-      - key: APP_DEBUG
-        value: false
-      - key: APP_URL
-        value: https://pixel-positions-laracasts-course-final.onrender.com
       - key: APP_KEY
         value: base64:m0TatBZduRyTlnu+3JcQzs8fKDm/cr4Fj8VBOh6cFLk=
+      - key: APP_DEBUG
+        value: false
       - key: DB_CONNECTION
         value: sqlite
       - key: DB_DATABASE
         value: /var/www/html/database/database.sqlite
-      - key: CACHE_DRIVER
-        value: file
-      - key: SESSION_DRIVER
-        value: file
-      - key: QUEUE_CONNECTION
-        value: sync
     ports:
       - containerPort: 10000
         protocol: HTTP
