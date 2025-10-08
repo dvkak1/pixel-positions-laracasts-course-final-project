@@ -1,30 +1,30 @@
 #!/bin/sh
 
-# Exit on any error
 set -e
 
-# Copy .env.example if .env does not exist
+# Ensure environment setup
 if [ ! -f .env ]; then
   cp .env.example .env
 fi
 
-# Generate Laravel app key if missing
+# Generate app key if missing
 php artisan key:generate --ansi || true
 
-# Ensure SQLite database exists
+# Create SQLite database
 mkdir -p database
 touch database/database.sqlite
 chmod 777 database/database.sqlite
 
-# Run migrations and seed the database
-php artisan migrate --force --seed || true
+# Clear caches to ensure fresh config/views
+php artisan config:clear || true
+php artisan view:clear || true
+php artisan cache:clear || true
 
-# Install Node dependencies and build Vite assets
-npm install --legacy-peer-deps || true
-npm run build || true
+# Run migrations
+php artisan migrate --force || true
 
-# Run Composer scripts (package discovery, etc.)
+# Run Composer scripts
 composer run-script post-autoload-dump || true
 
-# Start Laravel server on port 10000
+# Start Laravel app on port 10000
 php artisan serve --host=0.0.0.0 --port=10000

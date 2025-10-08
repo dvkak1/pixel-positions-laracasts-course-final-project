@@ -4,8 +4,8 @@ services:
     env: docker
     plan: free
     dockerfilePath: ./dockerfile
-    autoDeploy: true
     branch: main
+    autoDeploy: true
     envVars:
       - key: APP_ENV
         value: production
