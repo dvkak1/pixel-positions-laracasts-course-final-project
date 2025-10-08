@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# Exit on any error
+# Exit immediately on error
 set -e
 
 echo "🚀 Starting Laravel container setup..."
@@ -11,13 +11,13 @@ if [ ! -f .env ]; then
   cp .env.example .env
 fi
 
-# Generate app key if not set
+# Generate app key if not present
 if ! grep -q "APP_KEY=base64:" .env; then
-  echo "🔑 Generating Laravel APP_KEY..."
+  echo "🔑 Generating new Laravel APP_KEY..."
   php artisan key:generate --ansi || true
 fi
 
-# Ensure SQLite database file exists
+# Ensure SQLite database exists
 if [ "$DB_CONNECTION" = "sqlite" ]; then
   echo "🗄️  Ensuring SQLite database file exists..."
   mkdir -p database
@@ -25,32 +25,34 @@ if [ "$DB_CONNECTION" = "sqlite" ]; then
   chmod 777 database/database.sqlite
 fi
 
-# Run migrations
+# Refresh Composer autoload before migrations (prevents fake() undefined)
+echo "📦 Refreshing Composer autoload..."
+composer dump-autoload
+
+# Run migrations and seed (if available)
 echo "🧩 Running migrations..."
 php artisan migrate --force --seed || true
 
-# Check if Vite manifest exists
+# Ensure Composer autoload files are up to date
+echo "📦 Running Composer post-autoload-dump..."
+composer run-script post-autoload-dump || true
+
+# Install Node dependencies and build (if build missing)
 if [ ! -f "public/build/manifest.json" ]; then
-  echo "⚡ No Vite manifest found. Running build again..."
-  npm install --legacy-peer-deps
+  echo "⚡ Vite build not found, building assets..."
+  npm ci --legacy-peer-deps
   npm run build
 else
-  echo "✅ Found existing Vite manifest."
+  echo "✅ Found existing Vite build."
 fi
 
-# Verify the manifest again after build
-if [ ! -f "public/build/manifest.json" ]; then
-  echo "❌ ERROR: Vite manifest still not found after build!"
-  exit 1
-fi
+# Clear caches and optimize, skip if paths missing
+echo "🧹 Optimizing Laravel..."
+php artisan config:cache
+php artisan route:cache
+php artisan view:clear || true
+php artisan view:cache || true
 
-# Clear caches and optimize Laravel
-echo "🧹 Clearing and caching Laravel configuration..."
-php artisan config:clear
-php artisan route:clear
-php artisan view:clear
-php artisan optimize
-
-# Start Laravel server
-echo "🌐 Starting Laravel development server on port 10000..."
-exec php artisan serve --host=0.0.0.0 --port=10000
+# Start the Laravel development server
+echo "🌐 Starting Laravel server on port 10000..."
+php artisan serve --host=0.0.0.0 --port=10000
