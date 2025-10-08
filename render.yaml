@@ -17,7 +17,6 @@ services:
         value: sqlite
       - key: DB_DATABASE
         value: /var/www/html/database/database.sqlite
-      - key: APP_URL
-        value: https://pixel-positions-laracasts-course-final.onrender.com
     ports:
       - containerPort: 10000
+        protocol: HTTP

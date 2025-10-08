@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# Exit on error
+# Exit on any error
 set -e
 
 # Copy .env.example if .env does not exist
@@ -19,7 +19,7 @@ chmod 777 database/database.sqlite
 # Run migrations and seed the database
 php artisan migrate --force --seed || true
 
-# Build Vite assets
+# Install Node dependencies and build Vite assets
 npm install --legacy-peer-deps || true
 npm run build || true
 
