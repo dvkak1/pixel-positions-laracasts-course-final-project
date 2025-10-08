@@ -1,6 +1,46 @@
+# Ignore node modules and vendor directories (will be installed in container)
+
 node_modules
 vendor
+
+# Environment files
+
 .env
+.env.*
+!.env.example
+
+# OS and IDE files
+
+.DS_Store
+Thumbs.db
+.idea
+.vscode
+.fleet
+.nova
+.zed
+
+# Git files
+
 .git
 .gitignore
-.DS_Store
+
+# PHPUnit / cache files
+
+.phpunit.result.cache
+/.phpunit.cache
+
+# Laravel specific build artifacts
+
+/public/hot
+/public/storage
+/storage/*.key
+/storage/pail
+
+# Logs
+
+*.log
+
+# Temporary or backup files
+
+*.bak
+*.tmp
