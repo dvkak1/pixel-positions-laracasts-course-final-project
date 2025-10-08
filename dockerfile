@@ -1,10 +1,10 @@
-# Base PHP image
+# Use official PHP 8.2 FPM image
 FROM php:8.2-fpm
 
 # Set working directory
 WORKDIR /var/www/html
 
-# Install dependencies
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
     curl \
     git \
@@ -13,8 +13,8 @@ RUN apt-get update && apt-get install -y \
     gnupg \
     && docker-php-ext-install pdo pdo_sqlite
 
-# Install Node.js (for Vite)
-RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
+# Install Node.js 22.x (for modern Laravel + Vite)
+RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && \
     apt-get install -y nodejs && \
     npm install -g npm@latest
 
@@ -24,18 +24,18 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 # Copy project files
 COPY . .
 
-# Copy and set permissions for entrypoint script
+# Copy entrypoint script
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
-# Install PHP dependencies (without dev packages)
+# Install PHP dependencies
 RUN composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction
 
-# Build frontend assets
+# Install Node dependencies and build Vite assets
 RUN npm install --legacy-peer-deps && npm run build
 
-# Expose port
+# Expose Laravel port
 EXPOSE 10000
 
-# Run entrypoint
+# Set entrypoint
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
