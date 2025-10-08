@@ -1,15 +1,44 @@
-# Node dependencies
-node_modules
+# OS & editor junk
+.DS_Store
+Thumbs.db
 
-# Composer dependencies
-vendor
-
-# Environment files
-.env
-
-# Git metadata
+# Git
 .git
 .gitignore
 
-# macOS system files
-.DS_Store
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Node & PHP dependencies
+node_modules
+vendor
+
+# Build artifacts
+/public/build
+/public/hot
+/public/storage
+
+# Laravel caches & logs
+/storage/*.key
+/storage/framework/*
+/storage/logs/*
+
+# Composer & npm cache
+composer.lock
+package-lock.json
+
+# IDEs and dev tools
+/.idea
+/.vscode
+/.fleet
+/.phpunit.cache
+.phpactor.json
+.phpunit.result.cache
+.phpstorm.meta.php
+
+# Local development files
+Homestead.json
+Homestead.yaml
+auth.json

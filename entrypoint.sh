@@ -1,7 +1,5 @@
 #!/bin/sh
-
-# Exit immediately on error
-set -e
+set -ex  # Exit on error & show each command for debugging
 
 echo "🚀 Starting Laravel container setup..."
 
@@ -11,7 +9,7 @@ if [ ! -f .env ]; then
   cp .env.example .env
 fi
 
-# Generate app key if not present
+# Generate app key if missing
 if ! grep -q "APP_KEY=base64:" .env; then
   echo "🔑 Generating new Laravel APP_KEY..."
   php artisan key:generate --ansi || true
@@ -25,35 +23,36 @@ if [ "$DB_CONNECTION" = "sqlite" ]; then
   chmod 777 database/database.sqlite
 fi
 
-# Run migrations and seed (if available)
+# Run migrations and seed database (ignore failure if tables exist)
 echo "🧩 Running migrations..."
 php artisan migrate --force --seed || true
 
-# Ensure Composer autoload files are up to date
+# Composer post-autoload-dump
 echo "📦 Running Composer post-autoload-dump..."
 composer run-script post-autoload-dump || true
 
-# Install Node dependencies and build (if build missing)
+# Build assets only if missing
 if [ ! -f "public/build/manifest.json" ]; then
-  echo "⚡ Vite build not found, building assets..."
+  echo "⚡ Building Vite assets..."
   npm ci --legacy-peer-deps
   npm run build
 else
-  echo "✅ Found existing Vite build."
+  echo "✅ Existing Vite build found."
 fi
 
-# Double-check that manifest.json exists
+# Verify build output
 if [ ! -f "public/build/manifest.json" ]; then
   echo "❌ ERROR: Vite manifest not found after build!"
   exit 1
 fi
 
-# Clear caches and optimize
+# Cache optimizations
 echo "🧹 Optimizing Laravel..."
-php artisan config:cache
-php artisan route:cache
-php artisan view:cache
+php artisan config:cache || true
+php artisan route:cache || true
+php artisan view:cache || true
 
-# Start the Laravel development server
-echo "🌐 Starting Laravel server on port 10000..."
-php artisan serve --host=0.0.0.0 --port=10000
+# Start Laravel server on the Render-assigned port
+PORT=${PORT:-10000}
+echo "🌐 Starting Laravel server on port ${PORT}..."
+php artisan serve --host=0.0.0.0 --port=${PORT}
