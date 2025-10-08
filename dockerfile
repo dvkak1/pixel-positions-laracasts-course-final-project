@@ -4,7 +4,7 @@ FROM php:8.2-fpm
 # Set working directory
 WORKDIR /var/www/html
 
-# Install system dependencies
+# Install system dependencies and clean up afterwards
 RUN apt-get update && apt-get install -y \
     curl \
     git \
@@ -14,29 +14,33 @@ RUN apt-get update && apt-get install -y \
     && docker-php-ext-install pdo pdo_sqlite \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Install Node.js 22.x (for Laravel + Vite builds)
+# Install Node.js 22.x (for Laravel + Vite)
 RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && \
     apt-get install -y nodejs && \
-    npm install -g npm@latest
+    npm install -g npm@latest && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Install Composer
+# Install Composer from official image
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 # Copy project files
 COPY . .
 
-# Copy entrypoint script
+# Copy and enable entrypoint
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
-# Install PHP dependencies
+# Install PHP dependencies (no dev)
 RUN composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction
 
 # Install Node dependencies and build production Vite assets
 RUN npm ci --legacy-peer-deps && npm run build
 
+# Ensure build output exists (safety check for Render deployment)
+RUN ls -la public/build || (echo "❌ Build folder missing" && exit 1)
+
 # Expose port used by Laravel
 EXPOSE 10000
 
-# Use the custom entrypoint
+# Start Laravel via entrypoint
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

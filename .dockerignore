@@ -1,0 +1,15 @@
+# Node dependencies
+node_modules
+
+# Composer dependencies
+vendor
+
+# Environment files
+.env
+
+# Git metadata
+.git
+.gitignore
+
+# macOS system files
+.DS_Store
