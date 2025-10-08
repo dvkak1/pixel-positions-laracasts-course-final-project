@@ -4,7 +4,7 @@ FROM php:8.2-fpm
 # Set working directory
 WORKDIR /var/www/html
 
-# Install dependencies
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
     libsqlite3-dev \
     unzip \
@@ -15,26 +15,31 @@ RUN apt-get update && apt-get install -y \
 # Install Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-# Copy project files
+# Copy project files into the container
 COPY . .
 
-# Copy environment file (avoid missing .env issues)
-RUN cp .env.example .env
+# Copy environment file if not already present
+RUN if [ ! -f .env ]; then cp .env.example .env; fi
 
-# Install PHP dependencies safely (ignore scripts at build time)
+# Install PHP dependencies (no dev, optimized, no scripts yet)
 RUN composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction --no-scripts
 
-# Generate Laravel app key
-RUN php artisan key:generate
+# Generate Laravel application key
+RUN php artisan key:generate --ansi
 
-# Create SQLite database directory & file
-RUN mkdir -p database && touch database/database.sqlite && chmod 777 database/database.sqlite
+# Ensure SQLite database exists
+RUN mkdir -p /var/www/html/database && \
+    touch /var/www/html/database/database.sqlite && \
+    chmod 777 /var/www/html/database/database.sqlite
 
-# Run package discovery AFTER install
-RUN composer run-script post-autoload-dump
+# Run migrations & seed the database during build
+RUN php artisan migrate --force --seed || true
 
-# Expose port
+# Re-run Composer scripts (package discovery, etc.)
+RUN composer run-script post-autoload-dump || true
+
+# Expose port 8000 for Render
 EXPOSE 8000
 
-# Start Laravel app
-CMD php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=8000
+# Start Laravel server on Render
+CMD php artisan serve --host=0.0.0.0 --port=8000
