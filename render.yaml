@@ -3,7 +3,7 @@ services:
     name: pixel-positions
     env: docker
     plan: free
-    dockerfilePath: ./Dockerfile
+    dockerfilePath: ./dockerfile
     autoDeploy: true
     branch: main
     envVars:
@@ -16,6 +16,6 @@ services:
       - key: DB_CONNECTION
         value: sqlite
       - key: DB_DATABASE
-        value: /var/www/html/database/database.sqlite
+        value: /var/app/database/database.sqlite
     ports:
-      - containerPort: 8000
+      - containerPort: 10000
