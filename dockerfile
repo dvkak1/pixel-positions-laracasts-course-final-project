@@ -11,9 +11,10 @@ RUN apt-get update && apt-get install -y \
     unzip \
     libsqlite3-dev \
     gnupg \
-    && docker-php-ext-install pdo pdo_sqlite
+    && docker-php-ext-install pdo pdo_sqlite \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Install Node.js 22.x (for modern Laravel + Vite)
+# Install Node.js 22.x (for Laravel + Vite builds)
 RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && \
     apt-get install -y nodejs && \
     npm install -g npm@latest
@@ -31,11 +32,11 @@ RUN chmod +x /usr/local/bin/entrypoint.sh
 # Install PHP dependencies
 RUN composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction
 
-# Install Node dependencies and build Vite assets
-RUN npm install --legacy-peer-deps && npm run build
+# Install Node dependencies and build production Vite assets
+RUN npm ci --legacy-peer-deps && npm run build
 
-# Expose Laravel port
+# Expose port used by Laravel
 EXPOSE 10000
 
-# Set entrypoint
+# Use the custom entrypoint
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
