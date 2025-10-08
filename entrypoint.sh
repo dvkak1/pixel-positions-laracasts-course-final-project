@@ -1,73 +1,56 @@
 #!/bin/sh
 
-# Exit immediately on error
-
+# Exit on any error
 set -e
 
 echo "🚀 Starting Laravel container setup..."
 
-# Use .env.production if .env doesn't exist
-
-if [ ! -f .env ] && [ -f .env.production ]; then
-echo "⚙️  Using .env.production as .env..."
-cp .env.production .env
-elif [ ! -f .env ]; then
-echo "⚙️  No .env file found. Copying from .env.example..."
-cp .env.example .env
+# Ensure .env exists
+if [ ! -f .env ]; then
+  echo "⚙️  No .env file found. Copying from .env.example..."
+  cp .env.example .env
 fi
 
-# Generate app key if not already set
-
+# Generate app key if not set
 if ! grep -q "APP_KEY=base64:" .env; then
-echo "🔑 Generating Laravel APP_KEY..."
-php artisan key:generate --ansi || true
+  echo "🔑 Generating Laravel APP_KEY..."
+  php artisan key:generate --ansi || true
 fi
 
 # Ensure SQLite database file exists
-
 if [ "$DB_CONNECTION" = "sqlite" ]; then
-echo "🗄️  Ensuring SQLite database file exists..."
-mkdir -p database
-touch database/database.sqlite
-chmod 777 database/database.sqlite
+  echo "🗄️  Ensuring SQLite database file exists..."
+  mkdir -p database
+  touch database/database.sqlite
+  chmod 777 database/database.sqlite
 fi
 
-# Run database migrations and seeders (safe fallback)
-
+# Run migrations
 echo "🧩 Running migrations..."
 php artisan migrate --force --seed || true
 
-# Optimize Composer autoload
-
-echo "📦 Running Composer post-autoload-dump..."
-composer run-script post-autoload-dump || true
-
-# Check if Vite build exists; build if missing
-
+# Check if Vite manifest exists
 if [ ! -f "public/build/manifest.json" ]; then
-echo "⚡ No Vite build found. Building assets..."
-npm install --legacy-peer-deps
-npm run build
+  echo "⚡ No Vite manifest found. Running build again..."
+  npm install --legacy-peer-deps
+  npm run build
 else
-echo "✅ Found existing Vite build."
+  echo "✅ Found existing Vite manifest."
 fi
 
-# Verify Vite manifest
-
+# Verify the manifest again after build
 if [ ! -f "public/build/manifest.json" ]; then
-echo "❌ ERROR: Vite manifest not found after build!"
-exit 1
+  echo "❌ ERROR: Vite manifest still not found after build!"
+  exit 1
 fi
 
-# Laravel optimization
-
+# Clear caches and optimize Laravel
 echo "🧹 Clearing and caching Laravel configuration..."
 php artisan config:clear
 php artisan route:clear
 php artisan view:clear
 php artisan optimize
 
-# Start Laravel server on port 10000
-
-echo "🌐 Starting Laravel server on port 10000..."
+# Start Laravel server
+echo "🌐 Starting Laravel development server on port 10000..."
 exec php artisan serve --host=0.0.0.0 --port=10000

@@ -10,19 +10,19 @@ RUN apt-get update && apt-get install -y \
     git \
     unzip \
     libsqlite3-dev \
-    gnupg && \
-    docker-php-ext-install pdo pdo_sqlite && \
-    apt-get clean && rm -rf /var/lib/apt/lists/*
+    gnupg \
+    && docker-php-ext-install pdo pdo_sqlite \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Install Node.js 22.x (for Laravel + Vite builds)
-RUN bash -c "curl -fsSL https://deb.nodesource.com/setup_22.x | bash -" && \
+RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && \
     apt-get install -y nodejs && \
     npm install -g npm@latest
 
 # Install Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-# Copy project files
+# Copy project files first (after dependencies installed)
 COPY . .
 
 # Copy entrypoint script
@@ -35,8 +35,11 @@ RUN composer install --no-dev --prefer-dist --optimize-autoloader --no-interacti
 # Install Node dependencies and build production Vite assets
 RUN npm install --legacy-peer-deps && npm run build
 
-# Expose port used by Laravel
+# Double-check build artifact
+RUN ls -lah public/build || (echo "❌ Vite build folder missing!" && exit 1)
+
+# Expose Laravel port
 EXPOSE 10000
 
-# Use the custom entrypoint
+# Use the entrypoint script to start the app
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

@@ -1,46 +1,33 @@
-# Ignore node modules and vendor directories (will be installed in container)
-
+# Ignore dependency directories
 node_modules
 vendor
 
-# Environment files
-
+# Ignore local environment files
 .env
-.env.*
-!.env.example
+.env.local
+.env.development
+.env.production
 
-# OS and IDE files
-
-.DS_Store
-Thumbs.db
-.idea
-.vscode
-.fleet
-.nova
-.zed
-
-# Git files
-
+# Ignore Git and system files
 .git
 .gitignore
+.DS_Store
 
-# PHPUnit / cache files
+# Ignore build caches and local artifacts
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+.idea
+.vscode
 
-.phpunit.result.cache
-/.phpunit.cache
-
-# Laravel specific build artifacts
-
+# Ignore public build only if it’s locally generated — we rebuild inside Docker
 /public/hot
 /public/storage
 /storage/*.key
-/storage/pail
+/storage/framework/cache
+/storage/framework/sessions
+/storage/framework/views
 
-# Logs
-
+# Ignore OS and editor clutter
+Thumbs.db
 *.log
-
-# Temporary or backup files
-
-*.bak
-*.tmp
