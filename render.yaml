@@ -3,7 +3,7 @@ services:
     name: pixel-positions
     env: docker
     plan: free
-    dockerfilePath: ./Dockerfile
+    dockerfilePath: ./dockerfile
     autoDeploy: true
     branch: main
     envVars:
