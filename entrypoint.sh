@@ -20,23 +20,26 @@ if [ "$DB_CONNECTION" = "sqlite" ]; then
   chmod 777 database/database.sqlite
 fi
 
-# Ensure Laravel storage & bootstrap/cache directories exist and are writable
+# Ensure storage & bootstrap/cache directories exist and are writable
 mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views bootstrap/cache
 chmod -R 777 storage bootstrap/cache
 
-# Run migrations and seed
+# Run migrations & seed
 php artisan migrate --force --seed || true
 
 # Ensure Composer autoload files are up to date
 composer run-script post-autoload-dump || true
 
-# Build Vite assets if missing
-if [ ! -f "public/build/manifest.json" ]; then
-  npm ci --legacy-peer-deps
-  npm run build
-fi
+# Build Vite assets **always** on container startup
+echo "⚡ Building Vite assets..."
+npm ci --legacy-peer-deps
+npm run build
 
-# Clear caches and optimize
+# Clear caches & optimize
+php artisan config:clear
+php artisan route:clear
+php artisan view:clear
+php artisan cache:clear
 php artisan config:cache
 php artisan route:cache
 php artisan view:cache
