@@ -1,52 +1,39 @@
 #!/bin/sh
 
+# Exit on error
 set -e
 
-echo "🚀 Starting Laravel container setup..."
-
-# Use production environment if exists
-if [ -f .env.production ]; then
-    echo "⚙️  Using .env.production"
-    cp .env.production .env
+# Ensure .env exists
+if [ ! -f .env ]; then
+  cp .env.example .env
 fi
 
-# Generate app key if missing
-if ! grep -q "APP_KEY=base64:" .env; then
-    echo "🔑 Generating Laravel APP_KEY..."
-    php artisan key:generate --ansi || true
-fi
+# Generate APP_KEY if missing
+grep -q "APP_KEY=base64:" .env || php artisan key:generate --ansi
 
 # Ensure SQLite database exists
-if [ "$DB_CONNECTION" = "sqlite" ]; then
-    echo "🗄️  Ensuring SQLite database file exists..."
-    mkdir -p database
-    touch database/database.sqlite
-    chmod 777 database/database.sqlite
-fi
+[ "$DB_CONNECTION" = "sqlite" ] && mkdir -p database && touch database/database.sqlite && chmod 777 database/database.sqlite
 
-# Run migrations and seed database
-echo "🧩 Running migrations..."
+# Ensure storage & cache directories exist
+mkdir -p storage/framework/{cache,sessions,views} bootstrap/cache
+chmod -R 777 storage bootstrap/cache
+
+# Run migrations & seed safely
 php artisan migrate --force --seed || true
 
-# Composer post-autoload-dump
-echo "📦 Running Composer post-autoload-dump..."
+# Run Composer post-autoload-dump
 composer run-script post-autoload-dump || true
 
-# Build Vite assets if manifest missing
-if [ ! -f "public/build/manifest.json" ]; then
-    echo "⚡ Building Vite assets..."
-    npm ci --legacy-peer-deps
-    npm run build
-else
-    echo "✅ Vite manifest found, skipping build."
-fi
+# Build Vite assets if manifest is missing
+[ ! -f "public/build/manifest.json" ] && npm ci --legacy-peer-deps && npm run build
 
-# Clear caches and optimize
-echo "🧹 Optimizing Laravel..."
-php artisan config:cache
-php artisan route:cache
-php artisan view:cache
+# Verify Vite manifest exists
+[ ! -f "public/build/manifest.json" ] && echo "❌ Vite manifest missing!" && exit 1
+
+# Clear and cache configs safely
+php artisan config:cache || true
+php artisan route:cache || true
+php artisan view:cache || true
 
 # Start Laravel server on port 10000
-echo "🌐 Starting Laravel server..."
 php artisan serve --host=0.0.0.0 --port=10000
