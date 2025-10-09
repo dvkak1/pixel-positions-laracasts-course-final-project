@@ -1,39 +1,45 @@
 #!/bin/sh
-
-# Exit on error
 set -e
+
+echo "🚀 Starting Laravel container setup..."
 
 # Ensure .env exists
 if [ ! -f .env ]; then
   cp .env.example .env
 fi
 
-# Generate APP_KEY if missing
-grep -q "APP_KEY=base64:" .env || php artisan key:generate --ansi
+# Generate app key if missing
+if ! grep -q "APP_KEY=base64:" .env; then
+  php artisan key:generate --ansi || true
+fi
 
 # Ensure SQLite database exists
-[ "$DB_CONNECTION" = "sqlite" ] && mkdir -p database && touch database/database.sqlite && chmod 777 database/database.sqlite
+if [ "$DB_CONNECTION" = "sqlite" ]; then
+  mkdir -p database
+  touch database/database.sqlite
+  chmod 777 database/database.sqlite
+fi
 
-# Ensure storage & cache directories exist
-mkdir -p storage/framework/{cache,sessions,views} bootstrap/cache
+# Ensure Laravel storage & bootstrap/cache directories exist and are writable
+mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views bootstrap/cache
 chmod -R 777 storage bootstrap/cache
 
-# Run migrations & seed safely
+# Run migrations and seed
 php artisan migrate --force --seed || true
 
-# Run Composer post-autoload-dump
+# Ensure Composer autoload files are up to date
 composer run-script post-autoload-dump || true
 
-# Build Vite assets if manifest is missing
-[ ! -f "public/build/manifest.json" ] && npm ci --legacy-peer-deps && npm run build
+# Build Vite assets if missing
+if [ ! -f "public/build/manifest.json" ]; then
+  npm ci --legacy-peer-deps
+  npm run build
+fi
 
-# Verify Vite manifest exists
-[ ! -f "public/build/manifest.json" ] && echo "❌ Vite manifest missing!" && exit 1
+# Clear caches and optimize
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
 
-# Clear and cache configs safely
-php artisan config:cache || true
-php artisan route:cache || true
-php artisan view:cache || true
-
-# Start Laravel server on port 10000
+# Start Laravel server
 php artisan serve --host=0.0.0.0 --port=10000
