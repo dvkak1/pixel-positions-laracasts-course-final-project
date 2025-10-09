@@ -21,6 +21,8 @@ services:
         value: file
       - key: SESSION_DRIVER
         value: file
+      - key: NODE_ENV
+        value: production
     ports:
       - containerPort: 10000
         protocol: HTTP

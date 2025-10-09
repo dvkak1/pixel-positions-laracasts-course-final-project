@@ -14,7 +14,7 @@ RUN apt-get update && apt-get install -y \
     && docker-php-ext-install pdo pdo_sqlite \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Install Node.js 22.x
+# Install Node.js 22.x (for Laravel + Vite)
 RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
     && apt-get install -y nodejs \
     && npm install -g npm@latest
@@ -25,11 +25,18 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 # Copy project files
 COPY . .
 
-# Copy entrypoint
+# Copy entrypoint script
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
-# Expose port
+# Create Laravel storage & bootstrap/cache directories with write permissions
+RUN mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views bootstrap/cache \
+    && chmod -R 777 storage bootstrap/cache
+
+# 🔹 Remove composer install & npm build from Dockerfile build steps
+# They are now handled at container runtime in entrypoint.sh
+
+# Expose Laravel port
 EXPOSE 10000
 
 # Use custom entrypoint

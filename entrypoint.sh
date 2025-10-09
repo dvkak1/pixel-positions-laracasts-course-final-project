@@ -20,26 +20,33 @@ if [ "$DB_CONNECTION" = "sqlite" ]; then
   chmod 777 database/database.sqlite
 fi
 
-# Ensure storage & bootstrap/cache directories exist and are writable
+# Ensure Laravel storage & bootstrap/cache directories exist and are writable
 mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views bootstrap/cache
 chmod -R 777 storage bootstrap/cache
 
-# Run migrations & seed
+# 🔹 Ensure Composer dependencies are installed
+if [ ! -d "vendor" ]; then
+  echo "📦 Vendor directory missing, running composer install..."
+  composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction
+fi
+
+# Run migrations and seed
 php artisan migrate --force --seed || true
 
 # Ensure Composer autoload files are up to date
 composer run-script post-autoload-dump || true
 
-# Build Vite assets **always** on container startup
-echo "⚡ Building Vite assets..."
-npm ci --legacy-peer-deps
-npm run build
+# 🔹 Set NODE_ENV for Vite build
+export NODE_ENV=${NODE_ENV:-production}
 
-# Clear caches & optimize
-php artisan config:clear
-php artisan route:clear
-php artisan view:clear
-php artisan cache:clear
+# Build Vite assets if missing
+if [ ! -f "public/build/manifest.json" ]; then
+  echo "⚡ Vite manifest not found, building assets in $NODE_ENV mode..."
+  npm ci --legacy-peer-deps
+  npm run build
+fi
+
+# Clear caches and optimize
 php artisan config:cache
 php artisan route:cache
 php artisan view:cache
