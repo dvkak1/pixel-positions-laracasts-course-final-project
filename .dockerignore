@@ -2,11 +2,12 @@
 node_modules
 vendor
 
-# Ignore local environment files
+# Ignore local environment files (keep .env.production if needed for Docker build)
 .env
 .env.local
 .env.development
-.env.production
+# Uncomment the next line only if you do NOT want .env.production copied
+# .env.production
 
 # Ignore Git and system files
 .git
@@ -20,9 +21,9 @@ yarn-error.log
 .idea
 .vscode
 
-# Ignore public build only if it’s locally generated — we rebuild inside Docker
-/public/hot
-/public/storage
+# Ignore public hot reload and storage (but keep public/build)
+public/hot
+public/storage
 /storage/*.key
 /storage/framework/cache
 /storage/framework/sessions
